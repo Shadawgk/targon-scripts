@@ -5,6 +5,8 @@ This repository contains the **Verification Script** and **Verified Execution Ou
 
 Running this audit ensures all **6 hardware, firmware, and storage prerequisites** are satisfied prior to reboot. This guarantees the bootloader executes a clean `submit_enrollment` baseline rather than failing on `submit_rotation` against stale TPM handles or lingering LVM structures—preventing infinite reboot loops.
 
+Important: You still have to follow the official guide regarding the BIOS settings. They are assumed to be set correctly, and the script just tests for the most common breaking points during installation
+
 ---
 
 ## 📊 Criteria Verification Matrix
