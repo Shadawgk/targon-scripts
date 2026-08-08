@@ -1,13 +1,28 @@
-# TargonOS System Audit & Verification Report
+# TargonOS System Audit & Deployment Guide
 
-## 📌 Summary
-This repository contains the **Verification Script** and **Target Execution Output** used to audit bare-metal nodes before initiating the TargonOS deployment process. The script validates **6 essential hardware, firmware, and storage prerequisites** to guarantee that the bootloader triggers a fresh `submit_enrollment` baseline rather than attempting key rotation against stale TPM/disk structures, leaving your machine boot endlessly without finishing the install
+## 📌 Executive Summary
+This repository contains the **Verification Script** and **Verified Execution Output** used to audit bare-metal hardware before installing TargonOS. 
+
+Running this audit ensures all **6 hardware, firmware, and storage prerequisites** are satisfied prior to reboot. This guarantees the bootloader executes a clean `submit_enrollment` baseline rather than failing on `submit_rotation` against stale TPM handles or lingering LVM structures—preventing infinite reboot loops.
 
 ---
 
-## 🛠️ 1. Complete Pre-Flight Audit Script
+## 📊 Criteria Verification Matrix
 
-This script runs on any standard Linux environment:
+| Check # | Target Requirement | Evaluation Parameters | Verified Status |
+| :---: | :--- | :--- | :---: |
+| **1** | **Hardware TPM 2.0** | `tpm2_getcap handles-persistent` returns **0 active handles**. | **PASS** |
+| **2** | **Storage & LVM Purge** | No active or lingering `targon--vg-root` Volume Group signatures. | **PASS** |
+| **3** | **EFI Binary Integrity** | Official `targonos-installer.efi` (~376M) staged on FAT32 `/dev/nvme0n1p1`. | **PASS** |
+| **4** | **UEFI NVRAM Order** | `Boot0000` set as primary boot target with `unattended=1`, seed, and serial console. | **PASS** |
+| **5** | **UEFI Secure Boot** | Secure Boot explicitly **DISABLED** in motherboard firmware. | **PASS** |
+| **6** | **Kernel Lockdown** | `/sys/kernel/security/lockdown` set to `[none]`. | **PASS** |
+
+---
+
+## 🛠️ 1. Pre-Flight Audit Script
+
+Run this script on the target Linux host prior to rebooting into the installer:
 
 ```bash
 sudo bash -c '
@@ -141,15 +156,22 @@ echo "2. Secondary Storage : $STORAGE_STATUS (No targon--vg-root active)"
 echo "3. EFI Installer     : $BINARY_STATUS (FAT32 ESP staging verified)"
 echo "4. Motherboard NVRAM : $NVRAM_STATUS (Boot0000 primary w/ unattended arguments)"
 echo "5. UEFI Secure Boot  : $SECURE_BOOT_STATUS ($SB_STATUS)"
+echo "6. Kernel Lockdown   : $LOCKDOWN_STATUS ([none] state confirmed)"
+echo "================================================================================"
+'
+```
 
+---
 
+## 📋 2. Verified Sample Output Log
 
+```text
 ================================================================================
                  TARGON OS 100% COMPLETE PRE-FLIGHT AUDIT REPORT               
 ================================================================================
 Timestamp : Sat Aug  8 19:27:13 UTC 2026
-Hostname  : Your_Hostname
-System    : XYZ
+Hostname  : kk
+System    : CG480-S5063
 ================================================================================
 
 [REQUIREMENT 1] HARDWARE TPM 2.0 CLEAR STATUS
@@ -197,18 +219,4 @@ Current Lockdown Interface: [none] integrity confidentiality
 5. UEFI Secure Boot  : PASS (DISABLED)
 6. Kernel Lockdown   : PASS ([none] state confirmed)
 ================================================================================
-echo "6. Kernel Lockdown   : $LOCKDOWN_STATUS ([none] state confirmed)"
-echo "================================================================================"
-'
-
-
-## 📊 Criteria Verification Matrix
-
-| Check # | Target Requirement | Evaluation Parameters | Verified Status |
-| :---: | :--- | :--- | :---: |
-| **1** | **Hardware TPM 2.0** | `tpm2_getcap handles-persistent` returns **0 active handles**. | **PASS** |
-| **2** | **Storage & LVM Purge** | No active or lingering `targon--vg-root` Volume Group signatures. | **PASS** |
-| **3** | **EFI Binary Integrity** | Official `targonos-installer.efi` (~376M) staged on FAT32 `/dev/nvme0n1p1`. | **PASS** |
-| **4** | **UEFI NVRAM Order** | `Boot0000` set as primary boot target with `unattended=1`, seed, and serial console flags. | **PASS** |
-| **5** | **UEFI Secure Boot** | Secure Boot explicitly **DISABLED** in motherboard firmware. | **PASS** |
-| **6** | **Kernel Lockdown** | `/sys/kernel/security/lockdown` set to `[none]`. | **PASS** |
+```
