@@ -1,6 +1,6 @@
 # TargonOS System Audit & Deployment Guide
 
-## 📌 Executive Summary
+## 📌 Summary
 This repository contains the **Verification Script** and **Verified Execution Output** used to audit bare-metal hardware before installing TargonOS. 
 
 Running this audit ensures all **6 hardware, firmware, and storage prerequisites** are satisfied prior to reboot. This guarantees the bootloader executes a clean `submit_enrollment` baseline rather than failing on `submit_rotation` against stale TPM handles or lingering LVM structures—preventing infinite reboot loops.
